@@ -327,7 +327,6 @@ void print_status()
     print_payment_list();
 }
 
-
 int main() {
     int choice;
     char productName[MAX_PRODUCT_NAME_SIZE] = {0,};
