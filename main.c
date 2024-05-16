@@ -372,7 +372,7 @@ int main() {
                     printf("%s %d원 결제(y/n) : ", item.productName, item.price);
                     scanf("%c", &pay);
 
-                    pay_for_product(item, pay);
+                    pay_for_product(item, pay); //코드 작성 1
                 }
 
                 break;
@@ -382,13 +382,13 @@ int main() {
                     break;
                 }
 
-                printf("취소할 상품의 번호를 입력하세요(1~%d) : ", payment_size());
+                printf("취소할 상품의 번호를 입력하세요(1~%d) : ", payment_size()); // 코드 작성 2 -> printf("");
                 scanf("%d", &pos);
 
-                cancel_payment(pos-1); // 코드 작성
+                cancel_payment(pos-1); // 코드 작성 3
                 break;
             case 4:
-                print_status(); // 코드 작성
+                print_status(); // 코드 작성 4
                 break;
             case 5:
                 printf("시스템 종료");
