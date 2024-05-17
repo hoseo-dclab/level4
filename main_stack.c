@@ -27,19 +27,15 @@ typedef struct DLinkedList {
 
 PayedProduct org;    // 헤드 노드 (헤드 포인터가 아님)
 
-typedef struct LinkedStackNode {
-    Item item;		       // 데이터 영역
-    struct LinkedNode* link;		// 다음 노드를 가리키는 포인터 변수
-} SendBackProduct;
-
-SendBackProduct* top = NULL;
-
 // init_basket 함수 정의
 /*
  * @Name : init_basket
  * @Description : 장바구니를 초기화합니다. front와 rear를 NULL로 설정합니다.
  */
-void init_basket() { front = rear = NULL; }
+void init_basket()
+{
+    front = rear = NULL;
+}
 
 // init_payment_list 함수 정의
 /*
@@ -47,8 +43,6 @@ void init_basket() { front = rear = NULL; }
  * @Description : 결제 목록을 초기화합니다. org의 next를 NULL로 설정합니다.
  */
 void init_payment_list() { org.next = NULL; }
-
-void init_send_back_stack() { top = NULL; }
 
 // get_head 함수 정의
 /*
@@ -87,16 +81,6 @@ int payment_size()
     return count;
 }
 
-int send_back_size()
-{
-    SendBackProduct *sbp;
-    int count = 0;
-    for (sbp = top; sbp != NULL; sbp = sbp->link)
-        count++;
-
-    return count;
-}
-
 // get_entry 함수 정의
 /*
  * @Name : get_entry
@@ -129,11 +113,6 @@ int is_basket_empty()
 int is_payment_empty()
 {
     return payment_size() > 0;
-}
-
-int is_send_back_empty()
-{
-    return top == NULL;
 }
 
 // enqueue 함수 정의
@@ -203,16 +182,6 @@ void insert(int pos, Item item)
     }
 }
 
-void push(Item item)
-{
-    SendBackProduct * sbp = (SendBackProduct*)malloc(sizeof(SendBackProduct));	// 동작 설명 :
-
-    sbp->item = item;				            // 동작 설명 :
-    sbp->link = (struct LinkedNode *) top;	                        // 동작 설명 :
-
-    top = sbp;		                        // 동작 설명 :
-}
-
 // dequeue 함수 정의
 /*
  * @Name : dequeue
@@ -248,34 +217,18 @@ void remove_curr(PayedProduct *pp)
     if (pp->next != NULL) pp->next->prev = pp->prev;
 }
 
-// delete_payment 함수 정의
+// delete 함수 정의
 /*
- * @Name : delete_payment
+ * @Name : delete
  * @Param : pos - 삭제할 노드의 위치 인덱스(0부터 시작)
  * @Description : 주어진 위치에 해당하는 노드를 삭제합니다.
  *                 주어진 위치에 해당하는 노드를 찾고, 해당 노드를 리스트에서 삭제합니다.
  */
-Item delete_payment(int pos)
+void delete_payment(int pos)
 {
     PayedProduct* pp = get_entry(pos);
-    Item item = pp->item;
-
-    remove_curr(pp);
-
-    return item;
-}
-
-Item pop()
-{
-    SendBackProduct * sbp;
-
-    sbp = top;
-    top = (SendBackProduct *) sbp->link;
-
-    Item item = sbp->item;
-    free(sbp);
-
-    return item;
+    if (pp != NULL)
+        remove_curr(pp);
 }
 
 // peek 함수 정의
@@ -283,14 +236,9 @@ Item pop()
  * @Name : peek
  * @Description : 덱의 가장 앞쪽에 있는 상품의 정보를 반환합니다.
  */
-Item peek_payment_list()
+Item peek()
 {
     return front->item;
-}
-
-Item peek_send_back_stack()
-{
-    return top->item;
 }
 
 // print_basket 함수 정의
@@ -301,7 +249,7 @@ Item peek_send_back_stack()
 void print_basket()
 {
     Product *p;
-    printf("장바구니 상품 수 : %d\n", basket_size());
+    printf("장바구 상품 수 : %d\n", basket_size());
 
     int count = 0;
     for (p = front; p != NULL; p = p->link)
@@ -321,16 +269,6 @@ void print_payment_list()
     int count = 0;
     for (pp = get_head(); pp != NULL; pp = pp->next)
         printf("%d. %s %d원\n", ++count, pp->item.productName, pp->item.price);
-}
-
-void print_send_back_stack()
-{
-    SendBackProduct * sbp;
-    printf("받은 상품 수 : %d\n", send_back_size());
-
-    int count = 0;
-    for (sbp = (SendBackProduct *) top; sbp != NULL; sbp = (SendBackProduct *) sbp->link)
-        printf("%d. %s %d원\n", ++count, sbp->item.productName, sbp->item.price);
 }
 
 // pay_for_product 함수 정의
@@ -358,19 +296,6 @@ void pay_for_product(Item item, char pay)
     }
 }
 
-void receive_product()
-{
-    for(int i = 0 ; i < 3 ; i++) {
-        if(get_entry(0) == NULL)
-            return;
-
-        Item item = delete_payment(0);
-
-        printf("%d. %s %d원\n", i+1, item.productName, item.price);
-        push(item);
-    }
-}
-
 // cancel_payment 함수 정의
 /*
  * @Name : cancel_payment
@@ -381,23 +306,13 @@ void receive_product()
 void cancel_payment(int pos)
 {
     Item item = get_entry(pos)->item;
-    delete_payment(pos);
+    delete(pos);
 
     enqueue(item);
 
     balance += item.price;
 
     printf("결제가 취소되었습니다.\n");
-}
-
-void send_back_product() {
-    Item item = pop();
-
-    enqueue(item);
-
-    balance += item.price;
-
-    printf("반송된 상품은 장바구니로 돌아갑니다.\n");
 }
 
 // print_status 함수 정의
@@ -410,7 +325,6 @@ void print_status()
     printf("현재 잔액 : %d\n", balance);
     print_basket();
     print_payment_list();
-    print_send_back_stack();
 }
 
 int main() {
@@ -418,14 +332,13 @@ int main() {
     char productName[MAX_PRODUCT_NAME_SIZE] = {0,};
     int price;
     char pay;
-    char back;
     int pos;
 
     printf("프로그램 시작\n");
     init_basket();
     init_payment_list();
 
-    printf("1.상품 담기  2.상품 결제하기  3.결제 취소  4.상품 받기 5.최근에 받은 상품 반송 6.현재 상태 확인  7.종료\n");
+    printf("1.상품 담기  2.상품 결제하기  3.결제 취소하기  4.현재 상태 확인 5.창고로 보내기 6.종료\n");
 
     while (1) {
         printf("원하는 기능의 번호를 입력하세요 : ");
@@ -474,22 +387,11 @@ int main() {
                 cancel_payment(pos-1); // 코드 작성 3
                 break;
             case 4:
-                printf("배송 시작\n");
-                receive_product(); // 코드 작성 4
+                print_status(); // 코드 작성 4
                 break;
             case 5:
-                getchar();
-                printf("가장 최근 받은 상품 반송(y/n) : ");
-                scanf("%c", &back);
-
-                if(pay == 'y')
-                    send_back_product(); // 코드 작성 5
-
                 break;
             case 6:
-                print_status(); // 코드 작성 6
-                break;
-            case 7:
                 printf("시스템 종료");
                 return 1;
             default:
