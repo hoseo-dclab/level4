@@ -30,9 +30,9 @@ PayedProduct org;    // 헤드 노드 (헤드 포인터가 아님)
 typedef struct LinkedStackNode {
     Item item;		       // 데이터 영역
     struct LinkedNode* link;		// 다음 노드를 가리키는 포인터 변수
-} SendBackProduct;
+} ReceiveProduct;
 
-SendBackProduct* top = NULL;
+ReceiveProduct* top = NULL;
 
 // init_basket 함수 정의
 /*
@@ -48,7 +48,12 @@ void init_basket() { front = rear = NULL; }
  */
 void init_payment_list() { org.next = NULL; }
 
-void init_send_back_stack() { top = NULL; }
+// init_receive_stack 함수 정의
+/*
+ * @Name : init_receive_stack
+ * @Description : 받은 상품 스택을 초기화합니다. top을 NULL로 설정합니다.
+ */
+void init_receive_stack() { top = NULL; }
 
 // get_head 함수 정의
 /*
@@ -87,11 +92,16 @@ int payment_size()
     return count;
 }
 
-int send_back_size()
+// receive_size 함수 정의
+/*
+ * @Name : receive_size
+ * @Description : 받은 상품의 수를 반환합니다.
+ */
+int receive_size()
 {
-    SendBackProduct *sbp;
+    ReceiveProduct *rp;
     int count = 0;
-    for (sbp = top; sbp != NULL; sbp = sbp->link)
+    for (rp = top; rp != NULL; rp = rp->link)
         count++;
 
     return count;
@@ -131,7 +141,12 @@ int is_payment_empty()
     return payment_size() > 0;
 }
 
-int is_send_back_empty()
+// is_receive_empty 함수 정의
+/*
+ * @Name : is_receive_empty
+ * @Description : 반송 스택이 비어있는지 여부를 반환합니다.
+ */
+int is_receive_empty()
 {
     return top == NULL;
 }
@@ -203,14 +218,20 @@ void insert(int pos, Item item)
     }
 }
 
+// push 함수 정의
+/*
+ * @Name : push
+ * @Param : item - 스택에 추가할 Item 구조체
+ * @Description : 주어진 Item을 반송 스택의 최상위에 추가합니다.
+ */
 void push(Item item)
 {
-    SendBackProduct * sbp = (SendBackProduct*)malloc(sizeof(SendBackProduct));	// 동작 설명 :
+    ReceiveProduct * rp = (ReceiveProduct*)malloc(sizeof(ReceiveProduct));	// 동작 설명 :
 
-    sbp->item = item;				            // 동작 설명 :
-    sbp->link = (struct LinkedNode *) top;	                        // 동작 설명 :
+    rp->item = item;				            // 동작 설명 :
+    rp->link = (struct LinkedNode *) top;	                        // 동작 설명 :
 
-    top = sbp;		                        // 동작 설명 :
+    top = rp;		                        // 동작 설명 :
 }
 
 // dequeue 함수 정의
@@ -265,15 +286,20 @@ Item delete_payment(int pos)
     return item;
 }
 
+// pop 함수 정의
+/*
+ * @Name : pop
+ * @Description : 반송 스택의 최상위 아이템을 제거하고 해당 아이템을 반환합니다.
+ */
 Item pop()
 {
-    SendBackProduct * sbp;
+    ReceiveProduct * rp;
 
-    sbp = top;
-    top = (SendBackProduct *) sbp->link;
+    rp = top;
+    top = (ReceiveProduct *) rp->link;
 
-    Item item = sbp->item;
-    free(sbp);
+    Item item = rp->item;
+    free(rp);
 
     return item;
 }
@@ -288,7 +314,12 @@ Item peek_payment_list()
     return front->item;
 }
 
-Item peek_send_back_stack()
+// peek_receive_stack 함수 정의
+/*
+ * @Name : peek_receive_stack
+ * @Description : 반송 스택의 최상위 아이템을 조회합니다.
+ */
+Item peek_receive_stack()
 {
     return top->item;
 }
@@ -323,14 +354,19 @@ void print_payment_list()
         printf("%d. %s %d원\n", ++count, pp->item.productName, pp->item.price);
 }
 
-void print_send_back_stack()
+// print_receive_stack 함수 정의
+/*
+ * @Name : print_receive_stack
+ * @Description : 반송 스택의 아이템들을 출력합니다.
+ */
+void print_receive_stack()
 {
-    SendBackProduct * sbp;
-    printf("받은 상품 수 : %d\n", send_back_size());
+    ReceiveProduct * rp;
+    printf("받은 상품 수 : %d\n", receive_size());
 
     int count = 0;
-    for (sbp = (SendBackProduct *) top; sbp != NULL; sbp = (SendBackProduct *) sbp->link)
-        printf("%d. %s %d원\n", ++count, sbp->item.productName, sbp->item.price);
+    for (rp = (ReceiveProduct *) top; rp != NULL; rp = (ReceiveProduct *) rp->link)
+        printf("%d. %s %d원\n", ++count, rp->item.productName, rp->item.price);
 }
 
 // pay_for_product 함수 정의
@@ -390,6 +426,11 @@ void cancel_payment(int pos)
     printf("결제가 취소되었습니다.\n");
 }
 
+// send_back_product 함수 정의
+/*
+ * @Name : send_back_product
+ * @Description : 반송된 상품을 장바구니로 되돌립니다. 잔액에 반송된 상품의 가격을 추가합니다.
+ */
 void send_back_product() {
     Item item = pop();
 
@@ -410,7 +451,7 @@ void print_status()
     printf("현재 잔액 : %d\n", balance);
     print_basket();
     print_payment_list();
-    print_send_back_stack();
+    print_receive_stack();
 }
 
 int main() {
@@ -424,6 +465,7 @@ int main() {
     printf("프로그램 시작\n");
     init_basket();
     init_payment_list();
+    init_receive_stack();
 
     printf("1.상품 담기  2.상품 결제하기  3.결제 취소  4.상품 받기 5.최근에 받은 상품 반송 6.현재 상태 확인  7.종료\n");
 
@@ -468,26 +510,31 @@ int main() {
                     break;
                 }
 
-                printf("취소할 상품의 번호를 입력하세요(1~%d) : ", payment_size()); // 코드 작성 2 -> printf("");
+                printf("취소할 상품의 번호를 입력하세요(1~%d) : ", payment_size());
                 scanf("%d", &pos);
 
-                cancel_payment(pos-1); // 코드 작성 3
+                cancel_payment(pos-1); // 코드 작성 2
                 break;
             case 4:
                 printf("배송 시작\n");
-                receive_product(); // 코드 작성 4
+                receive_product(); // 코드 작성 3
                 break;
             case 5:
                 getchar();
                 printf("가장 최근 받은 상품 반송(y/n) : ");
                 scanf("%c", &back);
 
+                if(is_receive_empty()) {
+                    printf("반송 가능한 상품이 없습니다.\n");
+                    break;
+                }
+
                 if(pay == 'y')
-                    send_back_product(); // 코드 작성 5
+                    send_back_product(); // 코드 작성 4
 
                 break;
             case 6:
-                print_status(); // 코드 작성 6
+                print_status();
                 break;
             case 7:
                 printf("시스템 종료");
