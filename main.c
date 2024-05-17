@@ -374,18 +374,18 @@ void print_receive_stack()
  * @Name : pay_for_product
  * @Param : item - 결제할 Item 구조체, pay - 결제 여부를 나타내는 문자('y' 또는 'n')
  * @Description : 주어진 Item을 결제합니다.
- *                 만약 결제를 진행할 경우, 잔액이 부족하면 에러 메시지를 출력합니다.
- *                 결제를 진행하지 않을 경우, 주어진 Item을 덱의 뒤쪽에 추가합니다.
+ *                 잔액이 부족하면 에러 메시지를 출력합니다.
+ *                 결제를 진행하지 않을 경우, 상품을 장바구니 제일 뒤로 보냅니다.
  */
 void pay_for_product(Item item, char pay)
 {
     if(pay == 'y') {
-        if (balance < item.price) {
+        if (balance < item.price + 50) {
             printf("잔액이 부족합니다.\n");
             return;
         }
 
-        balance -= item.price;
+        balance -= item.price + 50;
         insert(payment_size() - 1, item);
 
         printf("잔액 : %d원\n", balance);
@@ -394,6 +394,11 @@ void pay_for_product(Item item, char pay)
     }
 }
 
+// receive_product 함수 정의
+/*
+ * @Name : receive_product
+ * @Description : 주어진 결제 한 상품을 앞에서 부터 최대 3개 받습니다.
+ */
 void receive_product()
 {
     for(int i = 0 ; i < 3 ; i++) {
@@ -412,7 +417,6 @@ void receive_product()
  * @Name : cancel_payment
  * @Param : pos - 취소할 상품의 인덱스(0부터 시작)
  * @Description : 주어진 인덱스에 해당하는 결제된 상품을 취소하고, 취소된 상품을 덱의 뒤쪽에 추가합니다.
- *                 또한, 취소된 상품의 가격을 잔액에 추가합니다.
  */
 void cancel_payment(int pos)
 {
@@ -421,7 +425,7 @@ void cancel_payment(int pos)
 
     enqueue(item);
 
-    balance += item.price;
+    balance += item.price + 50;
 
     printf("결제가 취소되었습니다.\n");
 }
@@ -433,10 +437,8 @@ void cancel_payment(int pos)
  */
 void send_back_product() {
     Item item = pop();
-
     enqueue(item);
-
-    balance += item.price;
+    balance += item.price - 100;
 
     printf("반송된 상품은 장바구니로 돌아갑니다.\n");
 }
@@ -497,7 +499,7 @@ int main() {
                     Item item = dequeue();
 
                     getchar();
-                    printf("%s %d원 결제(y/n) : ", item.productName, item.price);
+                    printf("%s %d 결제(y/n) : ", item.productName, item.price);
                     scanf("%c", &pay);
 
                     pay_for_product(item, pay); //코드 작성 1
