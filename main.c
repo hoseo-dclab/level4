@@ -4,7 +4,7 @@
 
 #define MAX_PRODUCT_NAME_SIZE 20
 
-int balance = 5000;
+int cash = 5000; // 충전은 1000원 씩
 
 typedef struct Info {
     char *productName;
@@ -228,10 +228,10 @@ void push(Item item)
 {
     ReceiveProduct * rp = (ReceiveProduct*)malloc(sizeof(ReceiveProduct));	// 동작 설명 :
 
-    rp->item = item;				            // 동작 설명 :
-    rp->link = (struct LinkedNode *) top;	                        // 동작 설명 :
+    rp->item = item;				           
+    rp->link = (struct LinkedNode *) top;	                       
 
-    top = rp;		                        // 동작 설명 :
+    top = rp;		                       
 }
 
 // dequeue 함수 정의
@@ -376,21 +376,24 @@ void print_receive_stack()
  * @Description : 주어진 Item을 결제합니다.
  *                 잔액이 부족하면 에러 메시지를 출력합니다.
  *                 결제를 진행하지 않을 경우, 상품을 장바구니 제일 뒤로 보냅니다.
+ * @Return : -1 - 결제 거부
+ *            0 - 잔액 부족
+ *            1 - 결제 성공
  */
-void pay_for_product(Item item, char pay)
+int pay_for_product(Item item, char pay)
 {
     if(pay == 'y') {
-        if (balance < item.price + 50) {
-            printf("잔액이 부족합니다.\n");
-            return;
+        if (cash < item.price + 50) {
+            return 0;
         }
 
-        balance -= item.price + 50;
+        cash -= item.price + 50;
         insert(payment_size() - 1, item);
 
-        printf("잔액 : %d원\n", balance);
+        return 1;
     } else {
         enqueue(item);
+        return -1;
     }
 }
 
@@ -398,18 +401,15 @@ void pay_for_product(Item item, char pay)
 /*
  * @Name : receive_product
  * @Description : 주어진 결제 한 상품을 앞에서 부터 최대 3개 받습니다.
+ * @Return : 가장 오래된 결제 상품
  */
-void receive_product()
+Item receive_product()
 {
-    for(int i = 0 ; i < 3 ; i++) {
-        if(get_entry(0) == NULL)
-            return;
-
-        Item item = delete_payment(0);
-
-        printf("%d. %s %d원\n", i+1, item.productName, item.price);
-        push(item);
-    }
+    Item item = delete_payment(0);
+    
+    push(item);
+    
+    return item;
 }
 
 // cancel_payment 함수 정의
@@ -417,6 +417,7 @@ void receive_product()
  * @Name : cancel_payment
  * @Param : pos - 취소할 상품의 인덱스(0부터 시작)
  * @Description : 주어진 인덱스에 해당하는 결제된 상품을 취소하고, 취소된 상품을 덱의 뒤쪽에 추가합니다.
+ * 
  */
 void cancel_payment(int pos)
 {
@@ -425,9 +426,7 @@ void cancel_payment(int pos)
 
     enqueue(item);
 
-    balance += item.price + 50;
-
-    printf("결제가 취소되었습니다.\n");
+    cash += item.price + 50;
 }
 
 // send_back_product 함수 정의
@@ -438,9 +437,7 @@ void cancel_payment(int pos)
 void send_back_product() {
     Item item = pop();
     enqueue(item);
-    balance += item.price - 100;
-
-    printf("반송된 상품은 장바구니로 돌아갑니다.\n");
+    cash += item.price - 100;
 }
 
 // print_status 함수 정의
@@ -450,7 +447,7 @@ void send_back_product() {
  */
 void print_status()
 {
-    printf("현재 잔액 : %d\n", balance);
+    printf("현재 잔액 : %d\n", cash);
     print_basket();
     print_payment_list();
     print_receive_stack();
@@ -469,7 +466,7 @@ int main() {
     init_payment_list();
     init_receive_stack();
 
-    printf("1.상품 담기  2.상품 결제하기  3.결제 취소  4.상품 배송 5.상품 반송 6.현재 상태 확인  7.종료\n");
+    printf("1.상품 담기 2.상품 결제 3.결제 취소  4.상품 배송 5.상품 반송 6.잔액 충전 7.현재 상태 확인 8.종료\n");
 
     while (1) {
         printf("원하는 기능의 번호를 입력하세요 : ");
@@ -482,7 +479,7 @@ int main() {
 
                 printf("상품 가격을 입력하세요 : ");
                 scanf("%d", &price);
-
+                
                 Item newItem;
 
                 newItem.productName = productName;
@@ -502,7 +499,14 @@ int main() {
                     printf("%s %d 결제(y/n) : ", item.productName, item.price);
                     scanf("%c", &pay);
 
-                    pay_for_product(item, pay); //코드 작성 1
+                    int pay_result = pay_for_product(item, pay); //코드 작성 1
+                    
+                    if(pay_result == 1 )
+                        printf("잔액이 부족합니다.\n");
+                    else if (pay_result == 0 )
+                        printf("잔액 : %d원\n", cash);
+                    else
+                        printf("해당 제품은 장바구니 끝으로 이동합니다.\n");
                 }
 
                 break;
@@ -516,10 +520,21 @@ int main() {
                 scanf("%d", &pos);
 
                 cancel_payment(pos-1); // 코드 작성 2
+                printf("결제가 취소되었습니다.\n");
                 break;
             case 4:
                 printf("배송 시작\n");
-                receive_product(); // 코드 작성 3
+                
+                Item receive_item;
+                
+                for(int i = 0 ; i < 3 ; i++) {
+                    if(get_entry(0) == NULL)
+                        break;
+
+                    receive_item = receive_product(); // 코드 작성 3
+
+                    printf("%d. %s %d원\n", i+1, receive_item.productName, receive_item.price);
+                }
                 break;
             case 5:
                 getchar();
@@ -531,14 +546,19 @@ int main() {
                     break;
                 }
 
-                if(pay == 'y')
+                if(pay == 'y') {
                     send_back_product(); // 코드 작성 4
+                    printf("반송된 상품은 장바구니로 돌아갑니다.\n");
+                }
 
                 break;
             case 6:
-                print_status();
+                cash += 1000;
                 break;
             case 7:
+                print_status();
+                break;
+            case 8:
                 printf("시스템 종료");
                 return 1;
             default:
