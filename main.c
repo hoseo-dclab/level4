@@ -11,6 +11,14 @@ typedef struct Info {
     int price;
 } Item;
 
+Item item_list[5] = {
+        {"coke", 1000},
+        {"cider", 1500},
+        {"fanta", 2000},
+        {"milk", 2500},
+        {"juice", 1400}
+};
+
 typedef struct LinkedQueueNode {
     Item item;
     struct LinkedQueueNode* link;
@@ -458,7 +466,7 @@ void print_status()
 int main() {
     int choice;
     char productName[MAX_PRODUCT_NAME_SIZE] = {0,};
-    int price;
+    int product_id;
     char pay;
     char back;
     int pos;
@@ -476,16 +484,15 @@ int main() {
 
         switch (choice) {
             case 1:
-                printf("상품 이름을 입력하세요 : ");
-                scanf("%s", productName);
+                for(int i = 0 ; i < sizeof(item_list) / sizeof(Item); i++) {
+                    printf("%d.상품명 : %s, 가격 : %d\n",
+                           i + 1, item_list[i].productName, item_list[i].price);
+                }
 
-                printf("상품 가격을 입력하세요 : ");
-                scanf("%d", &price);
-                
-                Item newItem;
+                printf("장바구니에 담을 상품 번호를 입력하세요 : ");
+                scanf("%d", &product_id);
 
-                newItem.productName = productName;
-                newItem.price = price;
+                Item newItem = item_list[product_id-1];
 
                 enqueue(newItem);
 
