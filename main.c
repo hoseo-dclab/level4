@@ -384,6 +384,7 @@ int pay_for_product(Item item, char pay)
 {
     if(pay == 'y') {
         if (cash < item.price + 50) {
+            enqueue(item);
             return 0;
         }
 
