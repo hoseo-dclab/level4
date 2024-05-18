@@ -555,6 +555,7 @@ int main() {
                 break;
             case 6:
                 cash += 1000;
+                printf("현재 잔액 : %d\n", cash);
                 break;
             case 7:
                 print_status();
