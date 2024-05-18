@@ -389,7 +389,7 @@ int pay_for_product(Item item, char pay)
         }
 
         cash -= item.price + 50;
-        insert(payment_size() - 1, item);
+        insert(payment_size(), item);
 
         return 1;
     } else {
@@ -401,8 +401,8 @@ int pay_for_product(Item item, char pay)
 // receive_product 함수 정의
 /*
  * @Name : receive_product
- * @Description : 주어진 결제 한 상품을 앞에서 부터 최대 3개 받습니다.
- * @Return : 가장 오래된 결제 상품
+ * @Description : 주어진 결제 한 상품을 앞에서 부터 최대 3개 받아 받은 상품 스택에 넣음.
+ * @Return : 제일 앞에 있는 결제 상품
  */
 Item receive_product()
 {
@@ -491,8 +491,10 @@ int main() {
                 break;
             case 2:
                 for(int i = 0 ; i < 3 ; i++) {
-                    if (is_basket_empty())
+                    if (is_basket_empty()) {
+                        printf("결제할 상품이 없습니다.\n");
                         break;
+                    }
 
                     Item item = dequeue();
 
