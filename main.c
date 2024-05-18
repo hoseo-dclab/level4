@@ -501,9 +501,9 @@ int main() {
 
                     int pay_result = pay_for_product(item, pay); //코드 작성 1
                     
-                    if(pay_result == 1 )
+                    if(pay_result == 0 )
                         printf("잔액이 부족합니다.\n");
-                    else if (pay_result == 0 )
+                    else if (pay_result == 1 )
                         printf("잔액 : %d원\n", cash);
                     else
                         printf("해당 제품은 장바구니 끝으로 이동합니다.\n");
